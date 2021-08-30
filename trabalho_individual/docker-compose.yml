@@ -1,10 +1,67 @@
 version: "3.8"
 services: 
+  
+  users-service-db:
+    image: mysql:5.7.20
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: db
+    ports: 
+      - "7201:3306"
+    volumes:
+      - ./users-service/:/var/lib/mysql
+  
+  chat-service-db: 
+    image: mysql:5.7.20
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: db
+    ports: 
+      - "7200:3306"
+    volumes:
+      - ./chat-service/:/var/lib/mysql
+
+  users-service:
+    build: ./users-service
+    volumes:
+      - ./users-service/src:/app/src
+    ports: 
+      - "7101:7101"
+    depends_on: 
+      - users-service-db
+
+  chat-service:
+    build: ./chat-service
+    ports: 
+      - "7100:7100"
+    volumes:
+      - ./chat-service/src:/app/src
+    depends_on: 
+      - chat-service-db
+
+  api-gateway: 
+    build: ./api-gateway
+    ports: 
+      - "7000:7000"
+    depends_on: 
+      - chat-service
+      - users-service
+  
   web: 
     build: ./chat-app
     ports: 
       - "7001:7001"
-  api: 
-    build: ./api-gateway
+    depends_on: 
+      - api-gateway
+      
+  phpmyadmin:
+    image: phpmyadmin
+    links: 
+      - users-service-db:users-service-db
+      - chat-service-db:chat-service-db
     ports: 
-      - "7000:7000"
+      - "7300:80"
+    volumes: 
+      - ./phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php 

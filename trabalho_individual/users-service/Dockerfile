@@ -1,8 +1,5 @@
 FROM node
 
-ENV MYSQL_ROOT_PASSWORD=password
-ENV MYSQL_DATABASE=db
-
 WORKDIR /usr/app
 
 COPY package.json ./
@@ -12,6 +9,6 @@ RUN yarn
 
 COPY . .
 
-EXPOSE 7200
+EXPOSE 7101
 
 CMD ["yarn", "watch"]
